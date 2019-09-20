@@ -52,10 +52,9 @@ static DEFINE_PER_CPU(struct cpu, cpu_devices);
 
 void __init parse_dtb(void)
 {
-	if (early_init_dt_scan(dtb_early_va))
-		return;
+	if (!early_init_dt_scan(dtb_early_va))
+    pr_err("No DTB passed to the kernel\n");
 
-	pr_err("No DTB passed to the kernel\n");
 #ifdef CONFIG_CMDLINE_FORCE
 	strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
 	pr_info("Forcing kernel command line to: %s\n", boot_command_line);
