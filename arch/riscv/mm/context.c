@@ -8,6 +8,7 @@
 #include <asm/tlbflush.h>
 #include <asm/cacheflush.h>
 #include <asm/mmu_context.h>
+#include <asm/csr.h>
 
 /*
  * When necessary, performs a deferred icache flush for the given MM context,
@@ -44,6 +45,7 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	struct task_struct *task)
 {
 	unsigned int cpu;
+	unsigned long status;
 
 	if (unlikely(prev == next))
 		return;
@@ -69,7 +71,15 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 
 	csr_write(CSR_SATP, virt_to_pfn(next->pgd) | SATP_MODE);
 	local_flush_tlb_all();
+
+#ifdef CONFIG_RISCV_ROCC
+	/* Flush TLB of SHA3 RoCC accelerator */
+	status = csr_read(CSR_SSTATUS);
+	csr_write(CSR_SSTATUS, status | SR_XS_INITIAL);
+	__asm__ __volatile__ (".insn r CUSTOM_2, 0, 2, zero, zero, zero");
+	csr_write(CSR_SSTATUS, status);
 #endif
+#endif /* CONFIG_MMU */
 
 	flush_icache_deferred(next);
 }
