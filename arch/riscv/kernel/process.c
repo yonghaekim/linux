@@ -116,7 +116,10 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
 	unsigned long sp)
 {
 	regs->status = SR_PIE;
-	if (has_fpu()) {
+#ifdef CONFIG_RISCV_ROCC
+	regs->status |= SR_XS_INITIAL;
+#endif
+        if (has_fpu()) {
 		regs->status |= SR_FS_INITIAL;
 		/*
 		 * Restore the initial value to the FP register
