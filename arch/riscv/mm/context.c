@@ -59,6 +59,14 @@ void switch_mm(struct mm_struct *prev, struct mm_struct *next,
 	cpumask_set_cpu(cpu, mm_cpumask(next));
 
 #ifdef CONFIG_MMU
+#ifdef CONFIG_RISCV_ROCC
+	/*
+	 * Fence to wait for RoCC memory operations to finish, since
+	 * satp is shared between the processor and RoCC accelerators.
+	 */
+	mb();
+#endif
+
 	csr_write(CSR_SATP, virt_to_pfn(next->pgd) | SATP_MODE);
 	local_flush_tlb_all();
 #endif
