@@ -25,7 +25,7 @@ void __init time_init(void)
 		}
 	}
 	of_node_put(cpu);
-	riscv_timebase = prop;
+	riscv_timebase = prop / CONFIG_RISCV_TIMEBASE_DIV;
 
 	lpj_fine = riscv_timebase / HZ;
 	timer_probe();
