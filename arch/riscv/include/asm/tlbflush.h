@@ -9,6 +9,7 @@
 
 #include <linux/mm_types.h>
 #include <asm/smp.h>
+#include <asm/csr.h>
 
 /*
  * Flush entire local TLB.  'sfence.vma' implicitly fences with the instruction
@@ -17,12 +18,22 @@
 static inline void local_flush_tlb_all(void)
 {
 	__asm__ __volatile__ ("sfence.vma" : : : "memory");
+#ifdef CONFIG_RISCV_ISA_HWACHA
+	if (csr_read(sstatus) & SR_XS) {
+		__asm__ __volatile__ ("vfence.vma" : : : "memory");
+	}
+#endif
 }
 
 /* Flush one page from local TLB */
 static inline void local_flush_tlb_page(unsigned long addr)
 {
 	__asm__ __volatile__ ("sfence.vma %0" : : "r" (addr) : "memory");
+#ifdef CONFIG_RISCV_ISA_HWACHA
+	if (csr_read(sstatus) & SR_XS) {
+		__asm__ __volatile__ ("vfence.vma" : : : "memory");
+	}
+#endif
 }
 
 #ifndef CONFIG_SMP

@@ -207,6 +207,10 @@ config RISCV_ISA_C
 
 	   If you don't know what to do here, say Y.
 
+config RISCV_ISA_HWACHA
+        bool "Support Hwacha vector coprocessor in userspace"
+        default y
+
 menu "supported PMU type"
 	depends on PERF_EVENTS
 

@@ -56,6 +56,9 @@ ifeq ($(CONFIG_MODULE_SECTIONS),y)
 endif
 
 KBUILD_CFLAGS_MODULE += $(call cc-option,-mno-relax)
+ifeq ($(CONFIG_RISCV_ISA_HWACHA),y)
+KBUILD_CFLAGS += -Wa,-march=$(subst fd,,$(riscv-march-y))xhwacha
+endif
 
 # GCC versions that support the "-mstrict-align" option default to allowing
 # unaligned accesses.  While unaligned accesses are explicitly allowed in the
