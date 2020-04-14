@@ -203,7 +203,7 @@ config DRM_TTM_HELPER
 	  Helpers for ttm-based gem objects
 
 config DRM_GEM_CMA_HELPER
-	bool
+	bool "GEM CMA Helper Functions"
 	depends on DRM
 	help
 	  Choose this if you need the GEM CMA helper functions
