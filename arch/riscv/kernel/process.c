@@ -69,7 +69,7 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
 {
 	regs->status = SR_PIE;
 	if (has_fpu) {
-		regs->status |= SR_FS_INITIAL;
+		regs->status |= SR_FS_INITIAL | SR_XS_INITIAL;
 		/*
 		 * Restore the initial value to the FP register
 		 * before starting the user program.
