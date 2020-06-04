@@ -1,17 +1,16 @@
 #include <linux/linkage.h>
+#include <asm-generic/export.h>
 #include <asm/asm.h>
 #include <asm/csr.h>
 
 #include "copy_template.S"
 
-	.altmacro
 	.macro fixup op reg addr lbl
-	LOCAL _epc
-_epc:
+100:
 	\op \reg, \addr
 	.section __ex_table,"a"
 	.balign RISCV_SZPTR
-	RISCV_PTR _epc, \lbl
+	RISCV_PTR 100b, \lbl
 	.previous
 	.endm
 
@@ -20,7 +19,7 @@ ENTRY(__asm_copy_from_user)
 
 	/* Enable access to user memory */
 	li t6, SR_SUM
-	csrs sstatus, t6
+	csrs CSR_STATUS, t6
 
 	.macro access op reg addr
 	fixup \op, \reg, \addr, 10f
@@ -28,7 +27,7 @@ ENTRY(__asm_copy_from_user)
 
 	.macro exit
 	/* Disable access to user memory */
-	csrc sstatus, t6
+	csrc CSR_STATUS, t6
 	li a0, 0
 	ret
 	.endm
@@ -37,13 +36,15 @@ ENTRY(__asm_copy_from_user)
 
 ENDPROC(__asm_copy_to_user)
 ENDPROC(__asm_copy_from_user)
+EXPORT_SYMBOL(__asm_copy_to_user)
+EXPORT_SYMBOL(__asm_copy_from_user)
 
 
 ENTRY(__clear_user)
 
 	/* Enable access to user memory */
 	li t6, SR_SUM
-	csrs sstatus, t6
+	csrs CSR_STATUS, t6
 
 	add a3, a0, a1
 	addi t0, a0, SZREG-1
@@ -65,7 +66,7 @@ ENTRY(__clear_user)
 
 3:
 	/* Disable access to user memory */
-	csrc sstatus, t6
+	csrc CSR_STATUS, t6
 	li a0, 0
 	ret
 4: /* Edge case: unalignment */
@@ -79,17 +80,18 @@ ENTRY(__clear_user)
 	bltu a0, a3, 5b
 	j 3b
 ENDPROC(__clear_user)
+EXPORT_SYMBOL(__clear_user)
 
 	.section .fixup,"ax"
 	.balign 4
 	/* Fixup code for __copy_user(10) and __clear_user(11) */
 10:
 	/* Disable access to user memory */
-	csrs sstatus, t6
+	csrs CSR_STATUS, t6
 	mv a0, a2
 	ret
 11:
-	csrs sstatus, t6
+	csrs CSR_STATUS, t6
 	mv a0, a1
 	ret
 	.previous

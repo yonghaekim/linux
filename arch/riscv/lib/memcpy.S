@@ -9,7 +9,8 @@
 #include "copy_template.S"
 
 /* void *memcpy(void *, const void *, size_t) */
-ENTRY(memcpy)
+ENTRY(__memcpy)
+WEAK(memcpy)
 	move t6, a0  /* Preserve return value */
 
 	.macro access op reg addr
@@ -22,5 +23,4 @@ ENTRY(memcpy)
 	.endm
 
 	__copy_template
-
-END(memcpy)
+END(__memcpy)
