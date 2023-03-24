@@ -469,6 +469,14 @@ config RISCV_SBI_V01
 	  This config allows kernel to use SBI v0.1 APIs. This will be
 	  deprecated in future once legacy M-mode software are no longer in use.
 
+config RISCV_TIMEBASE_DIV
+	int "RISC-V timebase divisor"
+	default 16
+	help
+	  Force the kernel to assume that the mtime RTC frequency is an
+	  integer factor slower than reported by the platform.
+	  This makes simulated systems more responsive to user interaction.
+
 config RISCV_BOOT_SPINWAIT
 	bool "Spinwait booting method"
 	depends on SMP
