@@ -141,6 +141,32 @@
 # define CSR_TVAL	CSR_STVAL
 # define CSR_IP		CSR_SIP
 
+//yh+begin
+#define CSR_DPT_CONFIG 0x430
+//#define CSR_BOUNDS_MARGIN 0x431
+#define CSR_NUM_TAGD 0x432
+#define CSR_NUM_XTAG 0x433
+#define CSR_NUM_TAGGED_STORE 0x434
+#define CSR_NUM_UNTAGGED_STORE 0x435
+#define CSR_NUM_TAGGED_LOAD 0x436
+#define CSR_NUM_UNTAGGED_LOAD 0x437
+#define CSR_NUM_INST 0x438
+#define CSR_LDST_TRAFFIC 0x439
+#define CSR_BOUNDS_TRAFFIC 0x43a
+#define CSR_NUM_STORE_HIT 0x43b
+#define CSR_NUM_LOAD_HIT 0x43c
+#define CSR_NUM_CSTR 0x43d
+#define CSR_NUM_CCLR 0x43e
+#define CSR_NUM_CSRCH 0x43f
+//#define CSR_NUM_CSRCH_HIT 0x440
+//#define CSR_NUM_CSTR_ITR 0x441
+//#define CSR_NUM_CCLR_ITR 0x442
+//#define CSR_NUM_CSRCH_ITR 0x443
+//#define CSR_NUM_CHK_FAIL 0x444
+//#define CSR_NUM_CSTR_FAIL 0x445
+//#define CSR_NUM_CCLR_FAIL 0x446
+//yh+end
+
 # define SR_IE		SR_SIE
 # define SR_PIE		SR_SPIE
 # define SR_PP		SR_SPP

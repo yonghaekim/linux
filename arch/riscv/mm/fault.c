@@ -17,8 +17,11 @@
 #include <asm/pgalloc.h>
 #include <asm/ptrace.h>
 #include <asm/tlbflush.h>
-
 #include "../kernel/head.h"
+//yh+begin
+#include <asm/csr.h>
+#define DPT_TAG_WIDTH 16
+//yh+end
 
 /*
  * This routine handles page faults.  It determines the address and the
@@ -275,3 +278,82 @@ vmalloc_fault:
 		return;
 	}
 }
+
+//yh+begin
+/*
+ * This routine handles bounds table resizing.
+    It determines the address and the
+ * problem, and then passes it off to one of the appropriate routines.
+ */
+asmlinkage void do_resize_cmt(struct pt_regs *regs)
+{
+	struct task_struct *tsk;
+	unsigned long addr, cause;
+
+	cause = regs->cause;
+	addr = regs->badaddr;
+	tsk = current;
+
+  unsigned long config = tsk->dpt_config;
+	void *base_addr = (void *) (config & 0xFFFFFFFFFFFF);
+  unsigned long num_ways = (config >> 48) & 0xFFF; // config[59:48]
+  unsigned long size = 8 * ((size_t) 1 << DPT_TAG_WIDTH) * num_ways;
+	unsigned long new_num_ways;
+	if (num_ways < 16)
+		new_num_ways = num_ways * 2;
+	else
+		new_num_ways = num_ways + 8;
+
+  pr_alert("[DPT] Resize CMT! base_addr: 0x%lx num_ways: (0x%lx->0x%lx) addr: 0x%lx cause: 0x%lx\n",
+           	base_addr, num_ways, new_num_ways, addr, cause);
+
+
+  unsigned long num_rows = ((unsigned long) 1 << DPT_TAG_WIDTH);
+  unsigned long row_size = 8*num_ways;
+  //unsigned long bulk_size = 2048; // 4KB / 2
+  //unsigned long bulk_num = (num_rows * row_size) / bulk_size;
+  //unsigned long num_rows_per_bulk = (bulk_size / row_size);
+  unsigned long i, j;
+  void *kbuf = kmalloc(row_size, GFP_KERNEL);
+  //void *kbuf = kmalloc(bulk_size*2, GFP_KERNEL);
+  void *zero = kzalloc(row_size, GFP_KERNEL);
+
+  if (kbuf == NULL)
+  	pr_alert("DPT Failed kmalloc()!\n");
+
+  if (zero == NULL)
+  	pr_alert("DPT Failed kzalloc()!\n");
+
+  long err;
+  for (i=num_rows-1; i>0; i--) {
+    void *src = (void *) ((size_t) base_addr + ((i * num_ways) << 3));
+    void *dest = (void *) ((size_t) base_addr + ((i * new_num_ways) << 3));
+    //pr_alert("[DPT] i: 0x%lx src: %p dest: %p\n", i, src, dest);
+
+    err = __copy_from_user(kbuf, src, row_size);
+    //if (err != 0)
+    //  pr_alert("Error in copy from user\n");
+    err = __copy_to_user(dest, kbuf, row_size);
+    //if (err != 0)
+    //  pr_alert("Error in copy to user (1)\n");
+    err = __copy_to_user(src, zero, row_size);
+    //if (err != 0)
+    //  pr_alert("Error in copy to user (2)\n");
+  }
+
+  kfree(kbuf);
+  kfree(zero);
+
+	// Set DPT Config
+	unsigned long new_config = (((u_int64_t) 0x1 << 62) | // enableDPT
+													((u_int64_t) 0x1 << 61) | // enableStats
+													((u_int64_t) new_num_ways << 48) |
+													((u_int64_t) base_addr << 0));
+
+	current->dpt_config = new_config;
+	csr_write(CSR_DPT_CONFIG, new_config); // Enable DPT
+	pr_alert("[DPT] Finished CMT resizing!\n");
+
+	return;
+}
+//yh+end

@@ -11,6 +11,7 @@
 extern atomic_t hart_lottery;
 
 asmlinkage void do_page_fault(struct pt_regs *regs);
+asmlinkage void do_resize_cmt(struct pt_regs *regs); //yh+
 asmlinkage void __init setup_vm(uintptr_t dtb_pa);
 
 extern void *__cpu_up_stack_pointer[];

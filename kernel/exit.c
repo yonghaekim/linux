@@ -703,10 +703,96 @@ static void check_stack_usage(void)
 static inline void check_stack_usage(void) {}
 #endif
 
+//yh+begin
+static void dpt_exit(struct task_struct *t) {
+  printk("[DPT] DPT-enabled task ended\n");
+  printk("\t|-- name: %s, pid: %d\n"
+    "\t|-- dpt_config: 0x%lx\n"
+    //"\t|-- bounds_margin: 0x%lx\n"
+    "\t|-- num_tagd = 0x%lx\n"
+    "\t|-- num_xtag = 0x%lx\n"
+    "\t|-- num_tagged_store = 0x%lx\n"
+    "\t|-- num_untagged_store = 0x%lx\n"
+    "\t|-- num_tagged_load = 0x%lx\n"
+    "\t|-- num_untagged_load = 0x%lx\n"
+    "\t|-- num_inst = 0x%lx\n"
+    "\t|-- ldst_traffic: 0x%lx\n"
+    "\t|-- bounds_traffic: 0x%lx\n"
+    "\t|-- num_store_hit = 0x%lx\n"
+    "\t|-- num_load_hit = 0x%lx\n"
+    "\t|-- num_cstr = 0x%lx\n"
+    "\t|-- num_cclr = 0x%lx\n"
+    "\t|-- num_csrch = 0x%lx\n",
+    //"\t|-- num_csrch_hit = 0x%lx\n"
+    //"\t|-- num_cstr_itr = 0x%lx\n"
+    //"\t|-- num_cclr_itr = 0x%lx\n"
+    //"\t|-- num_csrch_itr = 0x%lx\n"
+    //"\t|-- num_chk_fail = 0x%lx\n"
+    //"\t|-- num_cstr_fail = 0x%lx\n"
+    //"\t|-- num_cclr_fail = 0x%lx\n",
+      t->comm, t->pid,
+      csr_read(CSR_DPT_CONFIG),
+      //csr_read(CSR_BOUNDS_MARGIN),
+      csr_read(CSR_NUM_TAGD),
+      csr_read(CSR_NUM_XTAG),
+      csr_read(CSR_NUM_TAGGED_STORE),
+      csr_read(CSR_NUM_UNTAGGED_STORE),
+      csr_read(CSR_NUM_TAGGED_LOAD),
+      csr_read(CSR_NUM_UNTAGGED_LOAD),
+      csr_read(CSR_NUM_INST),
+      csr_read(CSR_LDST_TRAFFIC),
+      csr_read(CSR_BOUNDS_TRAFFIC),
+      csr_read(CSR_NUM_STORE_HIT),
+      csr_read(CSR_NUM_LOAD_HIT),
+      csr_read(CSR_NUM_CSTR),
+      csr_read(CSR_NUM_CCLR),
+      csr_read(CSR_NUM_CSRCH)
+      //csr_read(CSR_NUM_CSRCH_HIT),
+      //csr_read(CSR_NUM_CSTR_ITR),
+      //csr_read(CSR_NUM_CCLR_ITR),
+      //csr_read(CSR_NUM_CSRCH_ITR),
+      //csr_read(CSR_NUM_CHK_FAIL),
+      //csr_read(CSR_NUM_CSTR_FAIL),
+      //csr_read(CSR_NUM_CCLR_FAIL)
+  );
+
+  csr_write(CSR_DPT_CONFIG, 0); // disable DPT
+
+  t->dpt_config = 0;
+  //t->bounds_margin = 0;
+	t->num_tagd = 0;
+	t->num_xtag = 0;
+  t->num_tagged_store = 0;
+  t->num_untagged_store = 0;
+  t->num_tagged_load = 0;
+  t->num_untagged_load = 0;
+	t->num_inst = 0;
+  t->ldst_traffic = 0;
+  t->bounds_traffic = 0;
+  t->num_store_hit = 0;
+  t->num_load_hit = 0;
+	t->num_cstr = 0;
+	t->num_cclr = 0;
+	t->num_csrch = 0;
+	//t->num_csrch_hit = 0;
+	//t->num_cstr_itr = 0;
+	//t->num_cclr_itr = 0;
+	//t->num_csrch_itr = 0;
+	//t->num_chk_fail = 0;
+	//t->num_cstr_fail = 0;
+	//t->num_cclr_fail = 0;
+}
+//yh+end
+
 void __noreturn do_exit(long code)
 {
 	struct task_struct *tsk = current;
 	int group_dead;
+
+  //yh+begin
+  if (tsk->dpt_config)
+    dpt_exit(tsk);
+  //yh+end
 
 	profile_task_exit(tsk);
 	kcov_task_exit(tsk);
