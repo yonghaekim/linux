@@ -1421,5 +1421,6 @@ long ksys_old_shmctl(int shmid, int cmd, struct shmid_ds __user *buf);
 long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
 			    unsigned int nsops,
 			    const struct old_timespec32 __user *timeout);
-
+//asmlinkage long sys_dpt_set(long unsigned int cmt_base, long unsigned int num_ways, long unsigned int wbp_base); //yh+
+asmlinkage long sys_dpt_set(long unsigned int dpt_config, long unsigned int wbp_base); //yh+
 #endif

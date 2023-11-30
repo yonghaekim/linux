@@ -19,6 +19,10 @@
 #include <asm/tlbflush.h>
 
 #include "../kernel/head.h"
+//yh+begin
+#include <asm/csr.h>
+#define DPT_TAG_WIDTH 16
+//yh+end
 
 /*
  * This routine handles page faults.  It determines the address and the
@@ -67,6 +71,10 @@ asmlinkage void do_page_fault(struct pt_regs *regs)
 		flags |= FAULT_FLAG_USER;
 
 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, addr);
+	//yh+begin
+	if (tsk->dpt_config != 0)
+		tsk->num_page_faults += 1;
+	//yh+end
 
 retry:
 	down_read(&mm->mmap_sem);
@@ -275,3 +283,429 @@ vmalloc_fault:
 		return;
 	}
 }
+
+//yh+begin
+asmlinkage void do_ldchk_fault(struct pt_regs *regs)
+{
+  struct task_struct *tsk;
+  unsigned long addr, cause;
+  int code = SEGV_MAPERR;
+
+  cause = regs->cause;
+  addr = regs->badaddr;
+  tsk = current;
+
+  pr_alert("[DPT] Detected a Load Check Failure addr: 0x%lx cause: 0x%lx\n",
+            addr, cause);
+
+  do_trap(regs, SIGSEGV, code, addr);
+  return;
+}
+
+asmlinkage void do_stchk_fault(struct pt_regs *regs)
+{
+  struct task_struct *tsk;
+  unsigned long addr, cause;
+  int code = SEGV_MAPERR;
+
+  cause = regs->cause;
+  addr = regs->badaddr;
+  tsk = current;
+
+  pr_alert("[DPT] Detected a Store Check Failure addr: 0x%lx cause: 0x%lx\n",
+            addr, cause);
+
+  do_trap(regs, SIGSEGV, code, addr);
+  return;
+}
+
+asmlinkage void do_cstr_fault(struct pt_regs *regs)
+{
+  struct task_struct *tsk;
+  unsigned long addr, cause;
+
+  cause = regs->cause;
+  addr = regs->badaddr;
+  tsk = current;
+
+  long unsigned int config = tsk->dpt_config;
+  long unsigned int arena_end0 = (long unsigned int) csr_read(CSR_ARENA_END0);
+  long unsigned int arena_end1 = (long unsigned int) csr_read(CSR_ARENA_END1);
+  long unsigned int arena_end2 = (long unsigned int) csr_read(CSR_ARENA_END2);
+  long unsigned int arena_end3 = (long unsigned int) csr_read(CSR_ARENA_END3);
+  long unsigned int arena_end4 = (long unsigned int) csr_read(CSR_ARENA_END4);
+  long unsigned int arena_end5 = (long unsigned int) csr_read(CSR_ARENA_END5);
+  long unsigned int arena_end6 = (long unsigned int) csr_read(CSR_ARENA_END6);
+  long unsigned int arena_end7 = (long unsigned int) csr_read(CSR_ARENA_END7);
+  long unsigned int paddr = (((long unsigned int) addr >> 23) & 0xFFFF);
+  int N;
+  long unsigned int num_ways;
+  
+  if (paddr < ((arena_end0 >> 0) & 0xFFFF)) {
+    N = 0;
+  } else if (paddr < ((arena_end0 >> 16) & 0xFFFF)) {
+    N = 1;
+  } else if (paddr < ((arena_end0 >> 32) & 0xFFFF)) {
+    N = 2;
+  } else if (paddr < (arena_end0 >> 48)) {
+    N = 3;
+  } else if (paddr < ((arena_end1 >> 0) & 0xFFFF)) {
+    N = 4;
+  } else if (paddr < ((arena_end1 >> 16) & 0xFFFF)) {
+    N = 5;
+  } else if (paddr < ((arena_end1 >> 32) & 0xFFFF)) {
+    N = 6;
+  } else if (paddr < (arena_end1 >> 48)) {
+    N = 7;
+  } else if (paddr < ((arena_end2 >> 0) & 0xFFFF)) {
+    N = 8;
+  } else if (paddr < ((arena_end2 >> 16) & 0xFFFF)) {
+    N = 9;
+  } else if (paddr < ((arena_end2 >> 32) & 0xFFFF)) {
+    N = 10;
+  } else if (paddr < (arena_end2 >> 48)) {
+    N = 11;
+  } else if (paddr < ((arena_end3 >> 0) & 0xFFFF)) {
+    N = 12;
+  } else if (paddr < ((arena_end3 >> 16) & 0xFFFF)) {
+    N = 13;
+  } else if (paddr < ((arena_end3 >> 32) & 0xFFFF)) {
+    N = 14;
+  } else if (paddr < (arena_end3 >> 48)) {
+    N = 15;
+  } else if (paddr < ((arena_end4 >> 0) & 0xFFFF)) {
+    N = 16;
+  } else if (paddr < ((arena_end4 >> 16) & 0xFFFF)) {
+    N = 17;
+  } else if (paddr < ((arena_end4 >> 32) & 0xFFFF)) {
+    N = 18;
+  } else if (paddr < (arena_end4 >> 48)) {
+    N = 19;
+  } else if (paddr < ((arena_end5 >> 0) & 0xFFFF)) {
+    N = 20;
+  } else if (paddr < ((arena_end5 >> 16) & 0xFFFF)) {
+    N = 21;
+  } else if (paddr < ((arena_end5 >> 32) & 0xFFFF)) {
+    N = 22;
+  } else if (paddr < (arena_end5 >> 48)) {
+    N = 23;
+  } else if (paddr < ((arena_end6 >> 0) & 0xFFFF)) {
+    N = 24;
+  } else if (paddr < ((arena_end6 >> 16) & 0xFFFF)) {
+    N = 25;
+  } else if (paddr < ((arena_end6 >> 32) & 0xFFFF)) {
+    N = 26;
+  } else if (paddr < (arena_end6 >> 48)) {
+    N = 27;
+  } else if (paddr < ((arena_end7 >> 0) & 0xFFFF)) {
+    N = 28;
+  } else if (paddr < ((arena_end7 >> 16) & 0xFFFF)) {
+    N = 29;
+  } else if (paddr < ((arena_end7 >> 32) & 0xFFFF)) {
+    N = 30;
+  } else {
+    N = 31;
+  }
+
+  if (N == 0) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = (csr_num_ways0 & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF) | ((csr_num_ways0 & 0xFF) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 1) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 8) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF00) | ((csr_num_ways0 & 0xFF00) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 2) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 16) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF0000) | ((csr_num_ways0 & 0xFF0000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 3) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 24) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF000000) | ((csr_num_ways0 & 0xFF000000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 4) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 32) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF00000000) | ((csr_num_ways0 & 0xFF00000000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 5) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 40) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF0000000000) | ((csr_num_ways0 & 0xFF0000000000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 6) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = ((csr_num_ways0 >> 48) & 0xFF);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF000000000000) | ((csr_num_ways0 & 0xFF000000000000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 7) {
+    long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
+    num_ways = (csr_num_ways0 >> 56);
+    csr_num_ways0 = ((csr_num_ways0 & ~0xFF00000000000000) | ((csr_num_ways0 & 0xFF00000000000000) << 1));
+    csr_write(CSR_NUM_WAYS0, csr_num_ways0);
+    current->num_ways0 = csr_num_ways0;
+  } else if (N == 8) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = (csr_num_ways1 & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF) | ((csr_num_ways1 & 0xFF) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 9) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 8) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF00) | ((csr_num_ways1 & 0xFF00) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 10) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 16) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF0000) | ((csr_num_ways1 & 0xFF0000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 11) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 24) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF000000) | ((csr_num_ways1 & 0xFF000000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 12) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 32) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF00000000) | ((csr_num_ways1 & 0xFF00000000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 13) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 40) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF0000000000) | ((csr_num_ways1 & 0xFF0000000000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 14) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = ((csr_num_ways1 >> 48) & 0xFF);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF000000000000) | ((csr_num_ways1 & 0xFF000000000000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 15) {
+    long unsigned int csr_num_ways1 = (long unsigned int) csr_read(CSR_NUM_WAYS1);
+    num_ways = (csr_num_ways1 >> 56);
+    csr_num_ways1 = ((csr_num_ways1 & ~0xFF00000000000000) | ((csr_num_ways1 & 0xFF00000000000000) << 1));
+    csr_write(CSR_NUM_WAYS1, csr_num_ways1);
+    current->num_ways1 = csr_num_ways1;
+  } else if (N == 16) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = (csr_num_ways2 & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF) | ((csr_num_ways2 & 0xFF) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 17) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 8) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF00) | ((csr_num_ways2 & 0xFF00) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 18) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 16) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF0000) | ((csr_num_ways2 & 0xFF0000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 19) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 24) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF000000) | ((csr_num_ways2 & 0xFF000000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 20) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 32) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF00000000) | ((csr_num_ways2 & 0xFF00000000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 21) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 40) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF0000000000) | ((csr_num_ways2 & 0xFF0000000000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 22) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = ((csr_num_ways2 >> 48) & 0xFF);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF000000000000) | ((csr_num_ways2 & 0xFF000000000000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 23) {
+    long unsigned int csr_num_ways2 = (long unsigned int) csr_read(CSR_NUM_WAYS2);
+    num_ways = (csr_num_ways2 >> 56);
+    csr_num_ways2 = ((csr_num_ways2 & ~0xFF00000000000000) | ((csr_num_ways2 & 0xFF00000000000000) << 1));
+    csr_write(CSR_NUM_WAYS2, csr_num_ways2);
+    current->num_ways2 = csr_num_ways2;
+  } else if (N == 24) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = (csr_num_ways3 & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF) | ((csr_num_ways3 & 0xFF) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 25) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 8) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF00) | ((csr_num_ways3 & 0xFF00) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 26) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 16) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF0000) | ((csr_num_ways3 & 0xFF0000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 27) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 24) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF000000) | ((csr_num_ways3 & 0xFF000000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 28) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 32) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF00000000) | ((csr_num_ways3 & 0xFF00000000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 29) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 40) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF0000000000) | ((csr_num_ways3 & 0xFF0000000000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else if (N == 30) {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = ((csr_num_ways3 >> 48) & 0xFF);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF000000000000) | ((csr_num_ways3 & 0xFF000000000000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  } else {
+    long unsigned int csr_num_ways3 = (long unsigned int) csr_read(CSR_NUM_WAYS3);
+    num_ways = (csr_num_ways3 >> 56);
+    csr_num_ways3 = ((csr_num_ways3 & ~0xFF00000000000000) | ((csr_num_ways3 & 0xFF00000000000000) << 1));
+    csr_write(CSR_NUM_WAYS3, csr_num_ways3);
+    current->num_ways3 = csr_num_ways3;
+  }
+
+  long unsigned int dpt_config = (long unsigned int) csr_read(CSR_DPT_CONFIG);
+
+  if (num_ways == 4) { // NUM_WAYS_THRES = 4 * 2
+    dpt_config = (dpt_config | ((long unsigned int) 0x1 << 57));
+    csr_write(CSR_DPT_CONFIG, dpt_config);
+    current->dpt_config = dpt_config; // Is this needed?
+  }
+
+  pr_alert("[DPT] Resize CMT[%d]! config: 0x%lx num_ways: (0x%lx->0x%lx) addr: 0x%lx cause: 0x%lx\n",
+            N, config, num_ways, num_ways*2, addr, cause);
+
+  return;
+}
+
+asmlinkage void do_cclr_fault(struct pt_regs *regs)
+{
+  struct task_struct *tsk;
+  unsigned long addr, cause;
+  int code = SEGV_MAPERR;
+
+  cause = regs->cause;
+  addr = regs->badaddr;
+  tsk = current;
+
+  pr_alert("[DPT] Detected a CCLR Failure addr: 0x%lx cause: 0x%lx\n",
+            addr, cause);
+
+  do_trap(regs, SIGSEGV, code, addr);
+  return;
+}
+
+/*
+ * This routine handles bounds table resizing.
+    It determines the address and the
+ * problem, and then passes it off to one of the appropriate routines.
+ */
+//asmlinkage void do_resize_cmt(struct pt_regs *regs)
+//{
+//	struct task_struct *tsk;
+//	unsigned long addr, cause;
+//
+//	cause = regs->cause;
+//	addr = regs->badaddr;
+//	tsk = current;
+//
+//  unsigned long config = tsk->dpt_config;
+//	void *base_addr = (void *) (config & 0xFFFFFFFFFFFF);
+//  unsigned long num_ways = (config >> 48) & 0xFFF; // config[59:48]
+//  unsigned long size = 8 * ((size_t) 1 << DPT_TAG_WIDTH) * num_ways;
+//	unsigned long new_num_ways;
+//	if (num_ways < 16)
+//		new_num_ways = num_ways * 2;
+//	else
+//		new_num_ways = num_ways + 8;
+//
+//  pr_alert("[DPT] Resize CMT! base_addr: 0x%lx num_ways: (0x%lx->0x%lx) addr: 0x%lx cause: 0x%lx\n",
+//           	base_addr, num_ways, new_num_ways, addr, cause);
+//
+//
+//  unsigned long num_rows = ((unsigned long) 1 << DPT_TAG_WIDTH);
+//  unsigned long row_size = 8*num_ways;
+//  //unsigned long bulk_size = 2048; // 4KB / 2
+//  //unsigned long bulk_num = (num_rows * row_size) / bulk_size;
+//  //unsigned long num_rows_per_bulk = (bulk_size / row_size);
+//  unsigned long i, j;
+//  void *kbuf = kmalloc(row_size, GFP_KERNEL);
+//  //void *kbuf = kmalloc(bulk_size*2, GFP_KERNEL);
+//  void *zero = kzalloc(row_size, GFP_KERNEL);
+//
+//  if (kbuf == NULL)
+//  	pr_alert("DPT Failed kmalloc()!\n");
+//
+//  if (zero == NULL)
+//  	pr_alert("DPT Failed kzalloc()!\n");
+//
+//  long err;
+//  for (i=num_rows-1; i>0; i--) {
+//    void *src = (void *) ((size_t) base_addr + ((i * num_ways) << 3));
+//    void *dest = (void *) ((size_t) base_addr + ((i * new_num_ways) << 3));
+//    //pr_alert("[DPT] i: 0x%lx src: %p dest: %p\n", i, src, dest);
+//
+//    err = __copy_from_user(kbuf, src, row_size);
+//    //if (err != 0)
+//    //  pr_alert("Error in copy from user\n");
+//    err = __copy_to_user(dest, kbuf, row_size);
+//    //if (err != 0)
+//    //  pr_alert("Error in copy to user (1)\n");
+//    err = __copy_to_user(src, zero, row_size);
+//    //if (err != 0)
+//    //  pr_alert("Error in copy to user (2)\n");
+//  }
+//
+//  kfree(kbuf);
+//  kfree(zero);
+//
+//	// Set DPT Config
+//	unsigned long new_config = (((u_int64_t) 0x1 << 62) | // enableDPT
+//													((u_int64_t) 0x1 << 61) | // enableStats
+//													((u_int64_t) new_num_ways << 48) |
+//													((u_int64_t) base_addr << 0));
+//
+//	current->dpt_config = new_config;
+//	csr_write(CSR_DPT_CONFIG, new_config); // Enable DPT
+//	pr_alert("[DPT] Finished CMT resizing!\n");
+//
+//	return;
+//}
+//yh+end

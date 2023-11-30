@@ -640,6 +640,39 @@ struct task_struct {
 	/* -1 unrunnable, 0 runnable, >0 stopped: */
 	volatile long			state;
 
+	//yh+begin
+	/* Capability Metadata Table */
+	long unsigned int dpt_config;
+	long unsigned int wpb_base;
+	long unsigned int num_tagd;
+	long unsigned int num_xtag;
+	long unsigned int num_load;
+	long unsigned int num_store;
+	long unsigned int num_tagged_store;
+	long unsigned int num_tagged_load;
+	long unsigned int num_inst;
+	long unsigned int ldst_traffic;
+	long unsigned int bounds_traffic;
+	long unsigned int num_store_hit;
+	long unsigned int num_load_hit;
+	long unsigned int num_cstr;
+	long unsigned int num_cclr;
+	long unsigned int num_page_faults;
+	long unsigned int bnd_mask;
+	long unsigned int arena_end0;
+	long unsigned int arena_end1;
+	long unsigned int arena_end2;
+	long unsigned int arena_end3;
+	long unsigned int arena_end4;
+	long unsigned int arena_end5;
+	long unsigned int arena_end6;
+	long unsigned int arena_end7;
+	long unsigned int num_ways0;
+	long unsigned int num_ways1;
+	long unsigned int num_ways2;
+	long unsigned int num_ways3;
+	//yh+end
+
 	/*
 	 * This begins the randomizable portion of task_struct. Only
 	 * scheduling-critical items should be added above here.
