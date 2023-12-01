@@ -419,6 +419,20 @@ ENTRY(excp_vect_table)
 	RISCV_PTR do_page_fault   /* load page fault */
 	RISCV_PTR do_trap_unknown
 	RISCV_PTR do_page_fault   /* store page fault */
+	//yh+begin
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_trap_unknown
+	RISCV_PTR do_ldchk_fault
+	RISCV_PTR do_stchk_fault
+	RISCV_PTR do_cstr_fault
+	RISCV_PTR do_cclr_fault
+	//yh+end
 excp_vect_table_end:
 END(excp_vect_table)
 

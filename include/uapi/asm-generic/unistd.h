@@ -850,7 +850,10 @@ __SYSCALL(__NR_pidfd_open, sys_pidfd_open)
 #define __NR_clone3 435
 __SYSCALL(__NR_clone3, sys_clone3)
 #endif
-
+//yh+begin
+#define __NR_dpt_set 436
+__SYSCALL(__NR_dpt_set, sys_dpt_set)
+//yh+end
 #define __NR_openat2 437
 __SYSCALL(__NR_openat2, sys_openat2)
 #define __NR_pidfd_getfd 438
