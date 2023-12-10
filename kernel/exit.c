@@ -722,6 +722,9 @@ static void dpt_exit(struct task_struct *t) {
     "\t|-- bounds_traffic: 0x%lx\n"
     "\t|-- num_store_hit = 0x%lx\n"
     "\t|-- num_load_hit = 0x%lx\n"
+    "\t|-- num_slq_itr = 0x%lx\n"
+    "\t|-- num_ssq_itr = 0x%lx\n"
+    "\t|-- num_scq_itr = 0x%lx\n"
     "\t|-- num_page_faults = 0x%lx\n",
       t->comm, t->pid,
       csr_read(CSR_DPT_CONFIG),
@@ -739,6 +742,9 @@ static void dpt_exit(struct task_struct *t) {
       csr_read(CSR_BOUNDS_TRAFFIC),
       csr_read(CSR_NUM_STORE_HIT),
       csr_read(CSR_NUM_LOAD_HIT),
+      csr_read(CSR_NUM_SLQ_ITR),
+      csr_read(CSR_NUM_SSQ_ITR),
+      csr_read(CSR_NUM_SCQ_ITR),
       t->num_page_faults
   );
 
@@ -759,6 +765,9 @@ static void dpt_exit(struct task_struct *t) {
   t->num_load_hit = 0;
   t->num_cstr = 0;
   t->num_cclr = 0;
+  t->num_slq_itr = 0;
+  t->num_ssq_itr = 0;
+  t->num_scq_itr = 0;
   t->num_page_faults = 0;
 }
 //yh+end

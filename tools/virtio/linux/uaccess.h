@@ -8,7 +8,9 @@ extern void *__user_addr_min, *__user_addr_max;
 
 static inline void __chk_user_ptr(const volatile void *p, size_t size)
 {
-	assert(p >= __user_addr_min && p + size <= __user_addr_max);
+	//yh-assert(p >= __user_addr_min && p + size <= __user_addr_max);
+	void *p_untagged = (void *) ((size_t) p & (size_t) 0xFFFFFFFFFFFF); //yh+
+	assert(p_untagged >= __user_addr_min && p_untagged + size <= __user_addr_max); //yh+
 }
 
 #define put_user(x, ptr)					\

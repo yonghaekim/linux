@@ -1423,4 +1423,5 @@ long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
 			    const struct old_timespec32 __user *timeout);
 //asmlinkage long sys_dpt_set(long unsigned int cmt_base, long unsigned int num_ways, long unsigned int wbp_base); //yh+
 asmlinkage long sys_dpt_set(long unsigned int dpt_config, long unsigned int wbp_base); //yh+
+asmlinkage long sys_arena_set(long unsigned int arena_num, long unsigned int arena_val); //yh+
 #endif

@@ -143,7 +143,9 @@
 #define CSR_NUM_WAYS1 0x449
 #define CSR_NUM_WAYS2 0x44a
 #define CSR_NUM_WAYS3 0x44b
-#define CSR_NUM_WAYS_THRES 0x44c
+#define CSR_NUM_SLQ_ITR 0x44c
+#define CSR_NUM_SSQ_ITR 0x44d
+#define CSR_NUM_SCQ_ITR 0x44e
 //yh+end
 
 #ifdef CONFIG_RISCV_M_MODE

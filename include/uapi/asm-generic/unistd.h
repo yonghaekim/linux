@@ -853,6 +853,8 @@ __SYSCALL(__NR_clone3, sys_clone3)
 //yh+begin
 #define __NR_dpt_set 436
 __SYSCALL(__NR_dpt_set, sys_dpt_set)
+#define __NR_arena_set 245
+__SYSCALL(__NR_arena_set, sys_arena_set)
 //yh+end
 #define __NR_openat2 437
 __SYSCALL(__NR_openat2, sys_openat2)

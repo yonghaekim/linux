@@ -8,6 +8,20 @@
 #ifndef _ASM_RISCV_UACCESS_H
 #define _ASM_RISCV_UACCESS_H
 
+//yh+begin
+#define untagged_addr(addr)	({					\
+	u64 __addr = (__force u64)(addr);				\
+	__addr &= (u64) 0xFFFFFFFFFFFF;					\
+	(__force __typeof__(addr))__addr;				\
+})
+
+#define untagged_ptr(ptr)	({					\
+	u64 __ptrval = (__force u64)(ptr);				\
+	__ptrval = untagged_addr(__ptrval);				\
+	(__force __typeof__(*(ptr)) *)__ptrval;				\
+})
+//yh+end
+
 /*
  * User space memory access functions
  */
@@ -36,6 +50,8 @@ raw_copy_to_user(void __user *to, const void *from, unsigned long n)
 #include <asm/byteorder.h>
 #include <asm/extable.h>
 #include <asm/asm.h>
+
+
 
 #define __enable_user_access()							\
 	__asm__ __volatile__ ("csrs sstatus, %0" : : "r" (SR_SUM) : "memory")
@@ -94,6 +110,8 @@ static inline void set_fs(mm_segment_t fs)
  */
 static inline int __access_ok(unsigned long addr, unsigned long size)
 {
+	//addr = (addr & (unsigned long) 0xFFFFFFFFFFFF); //yh+
+	addr = untagged_addr(addr); //yh+
 	const mm_segment_t fs = get_fs();
 
 	return size <= fs.seg && addr <= fs.seg - size;
@@ -248,14 +266,24 @@ do {								\
  * Returns zero on success, or -EFAULT on error.
  * On error, the variable @x is set to zero.
  */
+//yh-#define get_user(x, ptr)					\
+//yh-({								\
+//yh-	const __typeof__(*(ptr)) __user *__p = (ptr);		\
+//yh-	might_fault();						\
+//yh-	access_ok(__p, sizeof(*__p)) ?		\
+//yh-		__get_user((x), __p) :				\
+//yh-		((x) = 0, -EFAULT);				\
+//yh-})
+//yh+begin
 #define get_user(x, ptr)					\
 ({								\
-	const __typeof__(*(ptr)) __user *__p = (ptr);		\
+	__typeof__(*(ptr)) __user *__p = untagged_ptr(ptr);	\
 	might_fault();						\
-	access_ok(__p, sizeof(*__p)) ?		\
+	access_ok(__p, sizeof(*__p)) ?				\
 		__get_user((x), __p) :				\
 		((x) = 0, -EFAULT);				\
 })
+//yh+end
 
 #define __put_user_asm(insn, x, ptr, err)			\
 do {								\
@@ -376,15 +404,24 @@ do {								\
  *
  * Returns zero on success, or -EFAULT on error.
  */
+//yh-#define put_user(x, ptr)					\
+//yh-({								\
+//yh-	__typeof__(*(ptr)) __user *__p = (ptr);			\
+//yh-	might_fault();						\
+//yh-	access_ok(__p, sizeof(*__p)) ?		\
+//yh-		__put_user((x), __p) :				\
+//yh-		-EFAULT;					\
+//yh-})
+//yh+begin
 #define put_user(x, ptr)					\
 ({								\
-	__typeof__(*(ptr)) __user *__p = (ptr);			\
+	__typeof__(*(ptr)) __user *__p = untagged_ptr(ptr);	\
 	might_fault();						\
-	access_ok(__p, sizeof(*__p)) ?		\
+	access_ok(__p, sizeof(*__p)) ?				\
 		__put_user((x), __p) :				\
 		-EFAULT;					\
 })
-
+//yh+end
 extern long strncpy_from_user(char *dest, const char __user *src, long count);
 
 extern long __must_check strlen_user(const char __user *str);

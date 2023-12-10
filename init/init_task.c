@@ -94,6 +94,9 @@ struct task_struct init_task
 	.num_ways1 = 0,
 	.num_ways2 = 0,
 	.num_ways3 = 0,
+	.num_slq_itr = 0,
+	.num_ssq_itr = 0,
+	.num_scq_itr = 0,
 	//yh+end
 	.stack		= init_stack,
 	.usage		= REFCOUNT_INIT(2),
