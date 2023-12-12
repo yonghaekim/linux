@@ -671,6 +671,10 @@ struct task_struct {
 	long unsigned int num_ways1;
 	long unsigned int num_ways2;
 	long unsigned int num_ways3;
+	long unsigned int num_ways4;
+	long unsigned int num_ways5;
+	long unsigned int num_ways6;
+	long unsigned int num_ways7;
 	long unsigned int num_slq_itr;
 	long unsigned int num_ssq_itr;
 	long unsigned int num_scq_itr;

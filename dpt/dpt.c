@@ -8,8 +8,6 @@
 //SYSCALL_DEFINE2(dpt_set, unsigned long, config, void *, base) {
 //SYSCALL_DEFINE3(dpt_set, long unsigned int, cmt_base, long unsigned int, num_ways, long unsigned int, wpb_base) {
 SYSCALL_DEFINE2(dpt_set, long unsigned int, dpt_config, long unsigned int, wpb_base) {
-  //printk("[DPT-SYSCALL] cmt_base: 0x%lx num_ways: 0x%lu wpb_base: 0x%lx\n",
-  //        cmt_base, num_ways, wpb_base);
   printk("[DPT-SYSCALL] dpt_config: 0x%lx wpb_base: 0x%lx\n", dpt_config, wpb_base);
 
   csr_write(CSR_NUM_TAGD, 0);
@@ -27,18 +25,14 @@ SYSCALL_DEFINE2(dpt_set, long unsigned int, dpt_config, long unsigned int, wpb_b
   csr_write(CSR_NUM_CCLR, 0);
   csr_write(CSR_BND_MASK, 0);
 
-  csr_write(CSR_NUM_WAYS0, 0x101010101010101);
-  csr_write(CSR_NUM_WAYS1, 0x101010101010101);
-  csr_write(CSR_NUM_WAYS2, 0x101010101010101);
-  csr_write(CSR_NUM_WAYS3, 0x101010101010101);
-  //csr_write(CSR_ARENA_END0, 0x0000000000004000);
-  //csr_write(CSR_ARENA_END1, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END2, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END3, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END4, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END5, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END6, 0x0000000000000000);
-  //csr_write(CSR_ARENA_END7, 0x0000000000000000);
+  csr_write(CSR_NUM_WAYS0, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS1, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS2, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS3, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS4, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS5, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS6, 0x0001000100010001);
+  csr_write(CSR_NUM_WAYS7, 0x0001000100010001);
   csr_write(CSR_NUM_SLQ_ITR, 0);
   csr_write(CSR_NUM_SSQ_ITR, 0);
   csr_write(CSR_NUM_SCQ_ITR, 0);
@@ -48,8 +42,6 @@ SYSCALL_DEFINE2(dpt_set, long unsigned int, dpt_config, long unsigned int, wpb_b
   current->wpb_base = wpb_base;
   csr_write(CSR_WPB_BASE, wpb_base);
   csr_write(CSR_DPT_CONFIG, dpt_config);
-
-  printk("[DPT-SYSCALL] Finished! config: 0x%lx\n", dpt_config);
 
   return 0;
 }
@@ -85,8 +77,8 @@ SYSCALL_DEFINE2(arena_set, long unsigned int, arena_num, long unsigned int, aren
 
   long unsigned int dpt_config = (long unsigned int) csr_read(CSR_DPT_CONFIG);
 //  printk("[DPT-ARENA] Update arena_num: %lu arena_val: 0x%lx dpt_config: (0x%lx -> 0x%lx)\n",
-//	  arena_num, arena_val, dpt_config, (dpt_config & ~((size_t) 1 << 57)));
-  dpt_config = (dpt_config & ~((size_t) 1 << 57));
+//	  arena_num, arena_val, dpt_config, (dpt_config & ~((size_t) 1 << 54)));
+  dpt_config = (dpt_config & ~((size_t) 1 << 54));
   csr_write(CSR_DPT_CONFIG, dpt_config);
   current->dpt_config = dpt_config;
 

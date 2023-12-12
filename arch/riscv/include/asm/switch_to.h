@@ -98,6 +98,10 @@ static inline __attribute__((always_inline)) void __dpt_setup(struct task_struct
     prev->num_ways1 = csr_read(CSR_NUM_WAYS1);
     prev->num_ways2 = csr_read(CSR_NUM_WAYS2);
     prev->num_ways3 = csr_read(CSR_NUM_WAYS3);
+    prev->num_ways4 = csr_read(CSR_NUM_WAYS4);
+    prev->num_ways5 = csr_read(CSR_NUM_WAYS5);
+    prev->num_ways6 = csr_read(CSR_NUM_WAYS6);
+    prev->num_ways7 = csr_read(CSR_NUM_WAYS7);
     prev->num_slq_itr = csr_read(CSR_NUM_SLQ_ITR);
     prev->num_ssq_itr = csr_read(CSR_NUM_SSQ_ITR);
     prev->num_scq_itr = csr_read(CSR_NUM_SCQ_ITR);
@@ -133,6 +137,10 @@ static inline __attribute__((always_inline)) void __dpt_setup(struct task_struct
     csr_write(CSR_NUM_WAYS1, next->num_ways1);
     csr_write(CSR_NUM_WAYS2, next->num_ways2);
     csr_write(CSR_NUM_WAYS3, next->num_ways3);
+    csr_write(CSR_NUM_WAYS4, next->num_ways4);
+    csr_write(CSR_NUM_WAYS5, next->num_ways5);
+    csr_write(CSR_NUM_WAYS6, next->num_ways6);
+    csr_write(CSR_NUM_WAYS7, next->num_ways7);
     csr_write(CSR_NUM_SLQ_ITR, next->num_slq_itr);
     csr_write(CSR_NUM_SSQ_ITR, next->num_ssq_itr);
     csr_write(CSR_NUM_SCQ_ITR, next->num_scq_itr);
