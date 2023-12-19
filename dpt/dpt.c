@@ -24,6 +24,7 @@ SYSCALL_DEFINE2(dpt_set, long unsigned int, dpt_config, long unsigned int, wpb_b
   csr_write(CSR_NUM_CSTR, 0);
   csr_write(CSR_NUM_CCLR, 0);
   csr_write(CSR_BND_MASK, 0);
+  csr_write(CSR_NUM_BM, 0);
 
   csr_write(CSR_NUM_WAYS0, 0x0001000100010001);
   csr_write(CSR_NUM_WAYS1, 0x0001000100010001);
@@ -38,9 +39,9 @@ SYSCALL_DEFINE2(dpt_set, long unsigned int, dpt_config, long unsigned int, wpb_b
   csr_write(CSR_NUM_SCQ_ITR, 0);
 
   /* Set task struct with info */
-  current->dpt_config = dpt_config;
   current->wpb_base = wpb_base;
   csr_write(CSR_WPB_BASE, wpb_base);
+  current->dpt_config = dpt_config;
   csr_write(CSR_DPT_CONFIG, dpt_config);
 
   return 0;

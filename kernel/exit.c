@@ -711,6 +711,7 @@ static void dpt_exit(struct task_struct *t) {
     "\t|-- wpb_base: 0x%lx\n"
     "\t|-- num_tagd = 0x%lx\n"
     "\t|-- num_xtag = 0x%lx\n"
+    "\t|-- num_bm = 0x%lx\n"
     "\t|-- num_cstr = 0x%lx\n"
     "\t|-- num_cclr = 0x%lx\n"
     "\t|-- num_store = 0x%lx\n"
@@ -731,6 +732,7 @@ static void dpt_exit(struct task_struct *t) {
       csr_read(CSR_WPB_BASE),
       csr_read(CSR_NUM_TAGD),
       csr_read(CSR_NUM_XTAG),
+      csr_read(CSR_NUM_BM),
       csr_read(CSR_NUM_CSTR),
       csr_read(CSR_NUM_CCLR),
       csr_read(CSR_NUM_STORE),
@@ -768,6 +770,7 @@ static void dpt_exit(struct task_struct *t) {
   t->num_slq_itr = 0;
   t->num_ssq_itr = 0;
   t->num_scq_itr = 0;
+  t->num_bm = 0;
   t->num_page_faults = 0;
 }
 //yh+end

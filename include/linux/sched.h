@@ -678,6 +678,7 @@ struct task_struct {
 	long unsigned int num_slq_itr;
 	long unsigned int num_ssq_itr;
 	long unsigned int num_scq_itr;
+	long unsigned int num_bm;
 	//yh+end
 
 	/*

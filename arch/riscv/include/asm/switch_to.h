@@ -105,6 +105,7 @@ static inline __attribute__((always_inline)) void __dpt_setup(struct task_struct
     prev->num_slq_itr = csr_read(CSR_NUM_SLQ_ITR);
     prev->num_ssq_itr = csr_read(CSR_NUM_SSQ_ITR);
     prev->num_scq_itr = csr_read(CSR_NUM_SCQ_ITR);
+    prev->num_bm = csr_read(CSR_NUM_BM);
 
     csr_write(CSR_DPT_CONFIG, 0); // disable DPT
   }
@@ -144,6 +145,7 @@ static inline __attribute__((always_inline)) void __dpt_setup(struct task_struct
     csr_write(CSR_NUM_SLQ_ITR, next->num_slq_itr);
     csr_write(CSR_NUM_SSQ_ITR, next->num_ssq_itr);
     csr_write(CSR_NUM_SCQ_ITR, next->num_scq_itr);
+    csr_write(CSR_NUM_BM, next->num_bm);
 
     csr_write(CSR_DPT_CONFIG, next->dpt_config); // enable DPT
   }

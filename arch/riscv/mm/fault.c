@@ -720,6 +720,9 @@ asmlinkage void do_cstr_fault(struct pt_regs *regs)
       csr_write(CSR_NUM_WAYS7, csr_num_ways7);
       current->num_ways7 = csr_num_ways7;
     }
+
+    pr_alert("[DPT] Resize CMT[%d]! addr: 0x%lx num_ways: (0x%lx->0x%lx)\n",
+              N, addr, num_ways, (num_ways << 1));
   } else if (mode == 0) { // mode 0
     long unsigned int csr_num_ways0 = (long unsigned int) csr_read(CSR_NUM_WAYS0);
     num_ways = ((csr_num_ways0 >> 0) & (long unsigned int) 0xFFFF);

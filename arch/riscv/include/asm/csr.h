@@ -150,6 +150,7 @@
 #define CSR_NUM_WAYS5 0x450
 #define CSR_NUM_WAYS6 0x451
 #define CSR_NUM_WAYS7 0x452
+#define CSR_NUM_BM 0x453
 //yh+end
 
 #ifdef CONFIG_RISCV_M_MODE
